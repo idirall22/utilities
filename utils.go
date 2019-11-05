@@ -1,16 +1,22 @@
 package utilities
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	u "github.com/idirall22/user"
 )
 
 // GetURLID get the id from url
-func GetURLID(r *http.Request) (int64, error) {
+func GetURLID(r *http.Request, name string) (int64, error) {
 
-	idStr, ok := mux.Vars(r)["id"]
+	if name == "" {
+		name = "id"
+	}
+
+	idStr, ok := mux.Vars(r)[name]
 
 	if !ok {
 		return 0, ErrorID
@@ -53,4 +59,17 @@ func GetParamsURLLimitAndOffset(r *http.Request, d int, l, o string) (int, int) 
 	}
 
 	return offset, limit
+}
+
+// GetUserIDFromContext get current user id from context
+func GetUserIDFromContext(ctx context.Context) (int64, error) {
+
+	v := ctx.Value(u.IDCtx)
+
+	id, ok := v.(int64)
+
+	if !ok {
+		return 0, ErrorUserID
+	}
+	return id, nil
 }
