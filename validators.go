@@ -4,7 +4,7 @@ import "math"
 
 // ValidateID validate an id used to query
 func ValidateID(id int64) error {
-	if id < 0 || id > math.MaxInt64 {
+	if id <= 0 || id > math.MaxInt64 {
 		return ErrorID
 	}
 	return nil
