@@ -1,8 +1,14 @@
 package utilities
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+
+	u "github.com/idirall22/user"
 )
 
 const (
@@ -12,6 +18,9 @@ const (
 	password = "password"
 	dbname   = "diskshar_test"
 )
+
+var userUsernameTest = "alice"
+var userPasswordTest = "fdpjfd654/*sMLdf"
 
 // ConnectDataBaseTest create a connection to database test
 func ConnectDataBaseTest() (*sql.DB, error) {
@@ -41,4 +50,33 @@ func BuildDataBase(db *sql.DB, query string) error {
 // CloseDataBaseTest close db
 func CloseDataBaseTest(db *sql.DB) {
 	db.Close()
+}
+
+// LoginUser log a user and get a JWT token to test with
+func LoginUser(db *sql.DB) string {
+
+	m := make(map[string]string)
+	m["username"] = userUsernameTest
+	m["password"] = userPasswordTest
+
+	b, err := json.Marshal(m)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	body := bytes.NewReader(b)
+
+	serviceUser := u.StartService(db, "users")
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("POST", "/login", body)
+
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	h := http.HandlerFunc(serviceUser.Login)
+	h.ServeHTTP(w, r)
+
+	return w.Header().Get("Authorization")
 }
